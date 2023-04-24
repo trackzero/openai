@@ -32,7 +32,7 @@ def get_secret():
 #Get API key from AWS Secrets Manager
 openai.api_key = get_secret()
 
-model="gpt-3.5-turbo"     #"gpt-4"
+model="gpt-3.5-turbo"     #"gpt-4" if you have it.
 
 # Set up initial conversation context
 conversation = []
