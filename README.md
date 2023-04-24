@@ -1,7 +1,7 @@
 # openai
 Experiments with the OpenAI API. You'll need your own API keys.
 
-There is little to no error handling, that's not how I roll.
+There is little to no error handling, that's just how I roll.
 
 ## Python
 Start with `pip install openai`
