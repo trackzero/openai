@@ -6,6 +6,7 @@ from colorama import init, Fore, Style
 openai.api_key = os.getenv("OPENAI_API_KEY")
 model="gpt-3.5-turbo"     #"gpt-4"
 
+session_tokens = 0
 # Set up initial conversation context
 conversation = []
 
@@ -16,7 +17,10 @@ init()
 def chatbot(conversation):
     max_tokens=1024
     completion= openai.ChatCompletion.create(model=model, messages=conversation, max_tokens=max_tokens)
-    return completion["choices"][0]["message"]["content"]
+
+    #Calculate token count
+
+    return (completion["choices"][0]["message"]["content"],completion["usage"]["total_tokens"])
 
 # Print welcome message and instructions
 print(Fore.GREEN + "Welcome to the chatbot! To start, enter your message below.")
@@ -31,16 +35,17 @@ while True:
         print(Fore.YELLOW + "Bot: Okay, let's start over." + Style.RESET_ALL)
         
     elif user_input.lower() in ["stop", "exit", "bye", "quit", "goodbye"]:
-        print(Fore.RED + Style.BRIGHT + "Bot: Okay, goodbye!" + Style.RESET_ALL)
+        print(Fore.RED + Style.BRIGHT + "Bot: Okay, goodbye!\n  Session Tokens Used: {})".format(session_tokens)+"\n" + Style.RESET_ALL)
         break
     else:
         # Append user message to conversation context
         conversation.append({"role": "user", "content": user_input})
         # Generate chat completion
-        chat = chatbot(conversation)
+        chat, total_tokens = chatbot(conversation)
         
         # Append bot message to conversation context
         conversation.append({"role": "assistant", "content": chat})
 
         # Print response
-        print(Fore.YELLOW + "Bot: " + Style.RESET_ALL + chat)
+        print(Fore.YELLOW + "Bot: " + Style.RESET_ALL + chat + Fore.MAGENTA + Style.BRIGHT + "\n(tokens: {})".format(total_tokens) + Style.RESET_ALL)
+        session_tokens += total_tokens
