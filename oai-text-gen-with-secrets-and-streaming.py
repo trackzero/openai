@@ -1,5 +1,6 @@
 import os
 import json
+import tiktoken
 import openai
 from colorama import init, Fore, Style
 import botocore
@@ -8,6 +9,10 @@ from botocore.exceptions import ClientError
 from aws_secretsmanager_caching import SecretCache, SecretCacheConfig 
 
 model="gpt-3.5-turbo"     #"gpt-4" if you have it.
+
+#track total tokens used in session
+session_tokens=0
+session_warning_delivered=False
 
 # Retrieve API key from AWS Secrets Manager, or try environment variable
 def get_secret():
@@ -42,6 +47,44 @@ conversation = []
 # Set up colorama
 init()
 
+#from https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
+    """Returns the number of tokens used by a list of messages."""
+    global session_warning_delivered
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        print("Warning: model not found. Using cl100k_base encoding." if not session_warning_delivered else "")
+        encoding = tiktoken.get_encoding("cl100k_base")
+    if model == "gpt-3.5-turbo":
+        print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301." if not session_warning_delivered else "")
+        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
+    elif model == "gpt-4":
+        print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314." if not session_warning_delivered else "")
+        return num_tokens_from_messages(messages, model="gpt-4-0314")
+    elif model == "gpt-3.5-turbo-0301":
+        tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+        tokens_per_name = -1  # if there's a name, the role is omitted
+    elif model == "gpt-4-0314":
+        tokens_per_message = 3
+        tokens_per_name = 1
+    else:
+        raise NotImplementedError(f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+    num_tokens = 0
+    for message in messages:
+       num_tokens += tokens_per_message
+       for item in conversation:
+            if isinstance(item, dict):
+                for key, value in item.items():
+                    num_tokens += len(encoding.encode(value))
+                    if key == "name":
+                        num_tokens += tokens_per_name
+            elif isinstance(item, str):
+                num_tokens += len(encoding.encode(item))
+    num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
+    session_warning_delivered=True
+    return num_tokens
+
 # Create an instance of the ChatCompletion API
 def chatbot(conversation):
     max_tokens=1024
@@ -57,7 +100,7 @@ def chatbot(conversation):
         collected_messages = ""
 
         #capture and print event stream
-        print(Fore.YELLOW + "Bot: " + Style.RESET_ALL)
+        print(Fore.YELLOW + Style.BRIGHT + "Bot: " + Style.RESET_ALL)
         for chunk in response:
             collected_chunks.append(chunk)  # save the event response
             chunk_message = chunk['choices'][0]['delta']  # extract the message
@@ -69,23 +112,23 @@ def chatbot(conversation):
         return(collected_messages)
     except Exception as e:
         # Print error if chatbot fails to generate response
-        print(Fore.RED + f"Error generating chat response: {e}" + Style.RESET_ALL)
+        print(Fore.RED + Style.BRIGHT + f"Error generating chat response: {e}" + Style.RESET_ALL)
 
 # Print welcome message and instructions
-print(Fore.GREEN + "Welcome to the chatbot! To start, enter your message below.")
+print(Fore.GREEN + Style.BRIGHT + "Welcome to the chatbot! To start, enter your message below.")
 print("To reset the conversation, type 'reset' or 'let's start over'.")
 print("To stop, say 'stop','exit', or 'bye'" + Style.RESET_ALL)
 
 # Loop to continuously prompt user for input and get response from OpenAI
 while True:
     try:
-        user_input = input(Fore.CYAN + "User: " + Style.RESET_ALL)
+        user_input = input(Fore.CYAN + Style.BRIGHT + "User: " + Style.RESET_ALL)
         if user_input.lower() in ["reset", "let's start over"]:
             conversation = []
-            print(Fore.YELLOW + "Bot: Okay, let's start over." + Style.RESET_ALL)
+            print(Fore.YELLOW + Style.BRIGHT + "Bot: Okay, let's start over." + Style.RESET_ALL)
 
         elif user_input.lower() in ["stop", "exit", "bye", "quit", "goodbye"]:
-            print(Fore.RED + Style.BRIGHT + "Bot: Okay, goodbye!" + Style.RESET_ALL)
+            print(Fore.RED + Style.BRIGHT + "Bot: Okay, goodbye!\n  Session Tokens Used: {})".format(str(session_tokens))+"\n" + Style.RESET_ALL)
             break
         else:
             # Append user message to conversation context
@@ -93,12 +136,17 @@ while True:
             # Generate chat completion
             chat = chatbot(conversation)
 
+            #estimate tokens, add to running total.
+            instance_tokens = num_tokens_from_messages(conversation, model)
+            print(Fore.MAGENTA + Style.BRIGHT "Transaction tokens: {}".format(str(instance_tokens)) + "\n" + Style.RESET_ALL)
+            session_tokens += instance_tokens
+
             # Append bot message to conversation context
             conversation.append({"role": "assistant", "content": chat})
     except KeyboardInterrupt:
         # Handle keyboard interrupt gracefully
-        print(Fore.RED + Style.BRIGHT + "Bot: Okay, goodbye!" + Style.RESET_ALL)
+        print(Fore.RED + Style.BRIGHT + "Bot: Okay, goodbye!\n  Session Tokens Used: {}".format(str(session_tokens))+"\n" + Style.RESET_ALL)
         break
     except Exception as e:
         # Print error if an unexpected exception occurs
-        print(Fore.RED + f"Unexpected error: {e}" + Style.RESET_ALL)
+        print(f"{Fore.RED}{Style.BRIGHT}Unexpected error: {e}\n  Session Tokens Used: {str(session_tokens)}\n{Style.RESET_ALL}")
