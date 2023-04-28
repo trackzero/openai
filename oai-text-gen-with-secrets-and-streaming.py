@@ -133,10 +133,7 @@ while True:
             print(f"{Fore.YELLOW}{Style.BRIGHT}Bot: Okay, let's start over.{Style.RESET_ALL}")
 
         elif user_input.lower() in ["stop", "exit", "bye", "quit", "goodbye"]:
-            print("debug1")
-            print(session_tokens)
             print(f"{Fore.RED}{Style.BRIGHT}Bot: Okay, goodbye!\n  Session Tokens Used: {session_tokens})\n{Style.RESET_ALL}")
-            print(conversation)  # debug
             break
         else:
             # Append user message to conversation context
@@ -145,7 +142,6 @@ while True:
             chat = chatbot(conversation)
 
             # estimate tokens, add to running total.
-            # print("debug: "  +json.dumps(conversation))
             instance_tokens = num_tokens_from_messages(conversation, model)
             print(f"{Fore.MAGENTA}{Style.BRIGHT} Transaction tokens: {instance_tokens}\n{Style.RESET_ALL}")
             session_tokens += instance_tokens
