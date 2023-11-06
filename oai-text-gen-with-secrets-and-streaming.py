@@ -8,7 +8,7 @@ import botocore.session
 from botocore.exceptions import ClientError
 from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
 
-model = "gpt-3.5-turbo"  # "gpt-4" if you have it.
+model = "gpt-4" # "gpt-3.5-turbo"  # "gpt-4" if you have it.
 
 # track total tokens used in session
 session_tokens = 0
@@ -50,7 +50,7 @@ conversation = []
 init()
 
 # from https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
-def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
+def num_tokens_from_messages(messages, model=model):
     """Returns the number of tokens used by a list of messages."""
     global session_warning_delivered
     try:
