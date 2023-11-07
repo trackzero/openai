@@ -7,24 +7,39 @@ app = Flask(__name__)
 client.api_key = os.environ.get("OPENAI_API_KEY")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
-def generate_images(prompt, num_images):
-    model = "dall-e-3" #was: "image-alpha-001"
-    size="1024x1024"
-    response = client.images.generate(model=model, prompt=prompt, n=num_images, size=size, quality="standard")
-    
-    urls = [data['url'] for data in response.data]
-    return urls
+def generate_images(prompt, size, style, quality):
+    model = "dall-e-3"  # Adjust the model name if needed
+    response = client.images.generate(
+        model=model,
+        prompt=prompt,
+        size=size,
+        style=style,
+        quality=quality,
+    )
+
+    image_url = response.data[0].url
+    return image_url
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         prompt = request.form["prompt"]
-        num_images = int(request.form["num_images"])
-        image_urls = generate_images(prompt, num_images)
+        size = request.form["size"]
+        style = request.form["style"]
+        quality = request.form["quality"]
+        image_url = generate_images(prompt, size, style, quality)
         session["prompt"] = prompt
-        return render_template("index.html", prompt=prompt, image_urls=image_urls)
+        session["prompt"] = prompt
+        session["size"] = size
+        session["style"] = style
+        session["quality"] = quality
+
+        return render_template("index.html", prompt=prompt, image_url=image_url)
     else:
         prompt = session.get("prompt", "")
+        size = session.get("size", "1024x1024")
+        style = session.get("style", "vivid")
+        quality = session.get("quality", "standard")
         return render_template("index.html", prompt=prompt)
 
 if __name__ == "__main__":
