@@ -60,3 +60,5 @@ This sample uses the gpt-4-image-preview model to generate a text description of
 `usage: oai-vision.py /path/to/image.jpg` (on windows, path can be d:\path\to\image.jpg)
 
 
+### OAI-Vision-Local-WebApp
+Added a Flask wrapper for the OAI Vision preview.  Install dependencies, run `app.py`. I did not create a dockerfile for this one.
