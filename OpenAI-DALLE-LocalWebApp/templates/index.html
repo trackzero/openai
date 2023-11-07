@@ -106,7 +106,8 @@
     <option value="hd"{% if quality == "hd" %} selected{% endif %}>HD</option>
   </select>
 </div>
-<input type="submit" value="Generate Images">
+<input type="submit" value="Generate Images" style="width: 200px; height: 50px; font-size: 18px; padding: 10px;">
+
   </form>
   {% if image_url %}
     <img src="{{ image_url }}" alt="Generated Image">
@@ -118,6 +119,7 @@
         const remaining = maxLength - textarea.value.length;
         document.getElementById("charCount").textContent = remaining + "/4000";
       }
+      updateCharCount(document.getElementById("prompt"));
     </script>
   </body>
 </html>

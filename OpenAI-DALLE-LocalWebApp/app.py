@@ -23,18 +23,17 @@ def generate_images(prompt, size, style, quality):
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        prompt = request.form["prompt"]
-        size = request.form["size"]
-        style = request.form["style"]
-        quality = request.form["quality"]
+        prompt = request.form.get("prompt")
+        size = request.form.get("size")
+        style = request.form.get("style")
+        quality = request.form.get("quality")
         image_url = generate_images(prompt, size, style, quality)
-        session["prompt"] = prompt
         session["prompt"] = prompt
         session["size"] = size
         session["style"] = style
         session["quality"] = quality
 
-        return render_template("index.html", prompt=prompt, image_url=image_url)
+        return render_template("index.html", prompt=prompt, size=size, style=style, quality=quality, image_url=image_url)
     else:
         prompt = session.get("prompt", "")
         size = session.get("size", "1024x1024")
