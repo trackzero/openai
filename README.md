@@ -50,5 +50,13 @@ You'll need to `pip install aws-secretsmanager-caching` for this one. Oh, and `b
 ### oai-text-gen-with-secrets-and-streaming.py
 Added streaming responses & token tracking into the mix. I'm not 100% sure the token tracking is accurate, so don't count on it for billing. It should be close for gpt3.5-turbo and gpt-4, but again, I don't *really* know what I'm doing.
 
+----
+## Image Analysis
+
+### oai-vision-py
+
+This sample uses the gpt-4-image-preview model to generate a text description of an image passed in through the command line.
+
+`usage: oai-vision.py /path/to/image.jpg` (on windows, path can be d:\path\to\image.jpg)
 
 
