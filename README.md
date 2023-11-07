@@ -33,7 +33,7 @@ I was actually surprised when docker didn't build locally. I muddled through hal
 
 I'm gonna be so screwed when I upgrade my dev desktop. You may think this is pointless rambling, but these are breadcrumbs I'm leaving for future Track.
 
-Where were we....Oh yes! The Flask app will currently persist your prompt, but not the other settings. It's a bug. Maybe I'll fix it, maybe I won't.
+Where were we....Oh yes! The Flask app will currently persist your prompt and image settings between submissions for the session.
 
 ----
 ## Text Generation
