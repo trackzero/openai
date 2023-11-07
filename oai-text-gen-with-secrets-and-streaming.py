@@ -1,12 +1,14 @@
 import os
 import json
 import tiktoken
-import openai
+import sys
+from openai import OpenAI
 from colorama import init, Fore, Style
 import botocore
 import botocore.session
 from botocore.exceptions import ClientError
 from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
+oaiclient=OpenAI()
 
 model = "gpt-4" # "gpt-3.5-turbo"  # "gpt-4" if you have it.
 
@@ -91,9 +93,9 @@ def num_tokens_from_messages(messages, model=model):
 
 # Create an instance of the ChatCompletion API
 def chatbot(conversation):
-    max_tokens = 1024
+    max_tokens = 4096
     try:
-        response = openai.ChatCompletion.create(
+        response = oaiclient.chat.completions.create(
             model=model,
             messages=conversation,
             max_tokens=max_tokens,
@@ -107,9 +109,10 @@ def chatbot(conversation):
         print(f"{Fore.YELLOW}{Style.BRIGHT}Bot: {Style.RESET_ALL}")
         for chunk in response:
             collected_chunks.append(chunk)  # save the event response
-            chunk_message = chunk['choices'][0]['delta']  # extract the message
-            if "content" in chunk_message:
-                message_text = chunk_message['content']
+            chunk_message = chunk.choices[0].delta  # extract the message
+            
+            if chunk_message.content is not None:
+                message_text = chunk_message.content
                 collected_messages += message_text
                 print(f"{message_text}", end="")
         print(f"\n")
