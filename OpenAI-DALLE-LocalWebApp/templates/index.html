@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Image Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"], input[type="number"], input[type="submit"] {
+      padding: 5px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      font-size: 16px;
+      width: 100%;
+      max-width: 500px;
+    }
+    input[type="submit"] {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #0062cc;
+    }
+    img {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+    <h1>OpenAI Image Generator</h1>
+    <form method="POST">
+      <label for="prompt">Enter a prompt:</label>
+      <input type="text" name="prompt" id="prompt" value="{{ prompt }}">
+      <br>
+      <label for="num_images">Enter the number of images to generate:</label>
+      <input type="number" name="num_images" id="num_images" min="1" max="10" value="1">(stick with 1, multiples aren't working yet)
+      <br>
+      <input type="submit" value="Generate Images">
+    </form>
+    {% if image_urls %}
+      {% for url in image_urls %}
+        <img src="{{ url }}" alt="Generated Image">
+      {% endfor %}
+    {% endif %}
+  </body>
+</html>
