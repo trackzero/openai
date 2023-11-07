@@ -13,9 +13,9 @@ RUN pip install -r requirements.txt
 # Expose port 5050
 EXPOSE 5050
 
-# Define environment variables (if needed)
-# ENV OPENAI_API_KEY=your_openai_api_key
-# ENV FLASK_SECRET_KEY=your_flask_secret_key
+# Define environment variables (set these in the container)
+ENV OPENAI_API_KEY=your_openai_api_key
+ENV FLASK_SECRET_KEY=your_flask_secret_key
 
 # Start your Flask app
 CMD ["python", "app.py"]
