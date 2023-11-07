@@ -1,10 +1,11 @@
 import os
-import openai
+from openai import OpenAI
 from colorama import init, Fore, Style
+client=OpenAI()
 
 #openai.organization = "org-placeholder"
-openai.api_key = os.getenv("OPENAI_API_KEY")
-model="gpt-3.5-turbo"     #"gpt-4"
+client.api_key = os.getenv("OPENAI_API_KEY")
+model="gpt-4"     #"gpt-4"
 
 session_tokens = 0
 # Set up initial conversation context
@@ -15,12 +16,12 @@ init()
 
 # Create an instance of the ChatCompletion API
 def chatbot(conversation):
-    max_tokens=1024
-    completion= openai.ChatCompletion.create(model=model, messages=conversation, max_tokens=max_tokens)
+    max_tokens=4096
+    completion= client.chat.completions.create(model=model, messages=conversation, max_tokens=max_tokens)
 
-    #Calculate token count
-
-    return (completion["choices"][0]["message"]["content"],completion["usage"]["total_tokens"])
+    message = completion.choices[0].message.content
+    total_tokens = completion.usage.total_tokens
+    return message, total_tokens
 
 # Print welcome message and instructions
 print(Fore.GREEN + "Welcome to the chatbot! To start, enter your message below.")
