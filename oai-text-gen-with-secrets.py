@@ -1,12 +1,13 @@
 import os
 import json
-import openai
+from openai import OpenAI
 from colorama import init, Fore, Style
 import boto3
 import botocore
 import botocore.session
 from botocore.exceptions import ClientError
 from aws_secretsmanager_caching import SecretCache, SecretCacheConfig 
+oaiclient=OpenAI()
 
 #retreive API key from AWS Secrets Manager
 def get_secret():
@@ -30,9 +31,9 @@ def get_secret():
 #openai.organization = "org-placeholder"
 
 #Get API key from AWS Secrets Manager
-openai.api_key = get_secret()
+oaiclient.api_key = get_secret()
 
-model="gpt-3.5-turbo"     #"gpt-4" if you have it.
+model="gpt-4"     #"gpt-4" if you have it.
 
 # Set up initial conversation context
 conversation = []
@@ -42,9 +43,10 @@ init()
 
 # Create an instance of the ChatCompletion API
 def chatbot(conversation):
-    max_tokens=1024
-    completion= openai.ChatCompletion.create(model=model, messages=conversation, max_tokens=max_tokens)
-    return completion["choices"][0]["message"]["content"]
+    max_tokens=4096
+    completion= oaiclient.chat.completions.create(model=model, messages=conversation, max_tokens=max_tokens)
+    message = completion.choices[0].message.content
+    return message
 
 # Print welcome message and instructions
 print(Fore.GREEN + "Welcome to the chatbot! To start, enter your message below.")
