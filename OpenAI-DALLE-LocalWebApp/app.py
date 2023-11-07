@@ -1,19 +1,18 @@
 import os
 from flask import Flask, session, request, render_template
-import openai
+from openai import OpenAI
+client = OpenAI()
 
 app = Flask(__name__)
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+client.api_key = os.environ.get("OPENAI_API_KEY")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 def generate_images(prompt, num_images):
     model = "dall-e-3" #was: "image-alpha-001"
-    response_format = "url"
-    size = "1024x1024"
-    quality = "standard"
-    images = openai.Image.create(model=model, prompt=prompt, response_format=response_format,
-                                 num_images=num_images, size=size, quality=quality)
-    urls = [img['url'] for img in images['data']]
+    size="1024x1024"
+    response = client.images.generate(model=model, prompt=prompt, n=num_images, size=size, quality="standard")
+    
+    urls = [data['url'] for data in response.data]
     return urls
 
 @app.route("/", methods=["GET", "POST"])
