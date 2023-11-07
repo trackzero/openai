@@ -15,7 +15,7 @@ Your own personal command-line version of DALL-E 3. (Might need to `pip install 
 For more flexibility, use the Flask app under `OpenAI-DALLE-LocalWebApp`
 
 Here's a screenshot:
-![Screenshot of the Flask app](assets/cybercrow.png)
+![Screenshot of the Flask app](assets/cyber-crow.png)
 
 I even included a dockerfile if you want to try to run it in a container.  I don't know what I'm doing but I got it to work.
 
