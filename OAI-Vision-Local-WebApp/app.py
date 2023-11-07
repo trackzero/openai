@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 import os
 import base64
 from openai import OpenAI
@@ -9,6 +9,7 @@ app = Flask(__name__)
 client = OpenAI()
 client.api_key = os.getenv("OPENAI_API_KEY")
 app.secret_key=os.getenv("FLASK_SECRET_KEY")
+app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Model name
 model = "gpt-4-vision-preview"
@@ -21,12 +22,18 @@ def encode_image(image_path):
 def index():
     return render_template("index.html")
 
+    # Define a route to display an image
+@app.route('/uploads/<filename>')
+def display_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
 @app.route("/", methods=["POST"])
 def generate_description():
     if "image" in request.files:
         image = request.files["image"]
         if image.filename != "":
-            image_path = "path_to_save_image.jpg"  # Specify the path to save the uploaded image
+            image_path = "uploads/working_image.jpg"  # Specify the path to save the uploaded image
             image.save(image_path)
 
             # Encode the image and generate the description (similar to your existing code)

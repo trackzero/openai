@@ -59,6 +59,11 @@
             margin: 20px 0;
             font-size: 18px;
         }
+
+        .output-image {
+            max-width: 100%;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -69,6 +74,7 @@
             <input type="submit" value="Generate Description">
         </form>
         <p>{{ description }}</p>
+        <img class="output-image" src="{{ url_for('display_image', filename='working_image.jpg') }}" alt="Selected Image">
     </div>
 </body>
 </html>
