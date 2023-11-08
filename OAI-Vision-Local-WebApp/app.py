@@ -32,6 +32,7 @@ def display_image(filename):
 def generate_description():
     if "image" in request.files:
         image = request.files["image"]
+        description_text = request.form.get("description_text", "What's in this image?")  # Get user-input text or use the default
         if image.filename != "":
             image_path = "uploads/working_image.jpg"  # Specify the path to save the uploaded image
             image.save(image_path)
@@ -44,7 +45,7 @@ def generate_description():
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "What’s in this image?"},
+                            {"type": "text", "text": description_text},  # Use the user-provided or default text
                             {
                                 "type": "image_url",
                                 "image_url": {
@@ -58,11 +59,12 @@ def generate_description():
             )
             description = response.choices[0].message.content
 
-            return render_template("index.html", description=description)
+            return render_template("index.html", description=description, description_text=description_text)
         else:
             return "No file selected"
     else:
         return "Invalid request"
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5050, debug=True)
