@@ -37,10 +37,10 @@ def display_image(filename):
 def generate_description():
     image = request.files.get("image")
     description_text = request.form.get("description_text", "What's in this image?")
-    
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'working_image.jpg')  # Static filename
+
     if image and image.filename != "":
-        # Save the new image and add to dialog_history
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+        # Overwrite the existing image with the new one
         image.save(image_path)
         base64_image = encode_image(image_path)
         session[SESSION_KEY_DIALOG_HISTORY].append({
@@ -75,7 +75,7 @@ def generate_description():
     })
     
     description = response.choices[0].message.content
-    return render_template("index.html", description=description, history=messages)
+    return render_template("index.html", description=description, history=messages, image_uploaded=os.path.exists(image_path))
 
 @app.route("/reset", methods=["POST"])
 def reset_session():

@@ -15,56 +15,37 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center py-4">Image Description Generator</h1>
-        <div class="mb-3">
+    <div class="container py-5">
+        <h1 class="text-center mb-4">Image Description Generator</h1>
+        <div class="mb-3 text-end">
             <form method="POST" action="/reset">
                 <button type="submit" class="btn btn-danger">Reset Session</button>
             </form>
         </div>
-        <div>
-            <form id="uploadForm" method="POST" action="/generate" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="image" class="form-label">Select image:</label>
-                    <input class="form-control" type="file" id="image" name="image" accept="image/*">
-                </div>
-                <div class="question-area">
-                    <label for="description_text" class="form-label">Ask a question:</label>
-                    <input type="text" class="form-control" id="description_text" name="description_text" placeholder="What's in this image?">
-                </div>
-                <button type="submit" class="btn btn-primary">Generate/Ask</button>
-            </form>
-        </div>
-
-        <div id="historyArea">
+        <form id="uploadForm" method="POST" action="/generate" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="image" class="form-label">Upload image:</label>
+                <input class="form-control" type="file" id="image" name="image" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label for="description_text" class="form-label">Describe or ask about the image:</label>
+                <input type="text" class="form-control" id="description_text" name="description_text" placeholder="What's in this image?" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        {% if image_uploaded %}
+            <div class="my-3">
+                <img src="{{ url_for('display_image', filename='working_image.jpg') }}?{{ cache_buster }}" class="img-fluid mb-3" alt="Uploaded Image"/>
+            </div>
+        {% endif %}
+        <div id="historyArea" class="mt-2">
             <!-- Display the dialog history -->
             {% for entry in history %}
-                <div class="alert alert-secondary" role="alert">
-                    <strong>{{ entry.role }}:</strong> {{ entry.content }}
+                <div class="border p-2 my-1">
+                    <strong>{{ entry.role.capitalize() }}:</strong> {{ entry.content }}
                 </div>
             {% endfor %}
         </div>
-
-        <div id="imageArea" class="mt-4">
-            <!-- Placeholder for image -->
-        </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.getElementById('uploadForm').addEventListener('submit', function() {
-            const image = document.getElementById('image');
-            // Check if file is selected
-            if (image.files.length > 0) {
-                // Display the uploaded image
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imageArea = document.getElementById('imageArea');
-                    imageArea.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" alt="Uploaded Image">';
-                }
-                reader.readAsDataURL(image.files[0]);
-            }
-        });
-    </script>
 </body>
 </html>
