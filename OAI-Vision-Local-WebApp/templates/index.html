@@ -2,80 +2,31 @@
 <html>
 <head>
     <title>Image Description Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-
-        h1 {
-            background-color: #007bff;
-            color: #fff;
-            padding: 20px 0;
-            margin: 0;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        input[type="file"] {
-            border: 2px solid #007bff;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        input[type="submit"] {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #0062cc;
-        }
-
-        p {
-            margin: 20px 0;
-            font-size: 18px;
-        }
-
-        .output-image {
-            max-width: 100%;
-            margin: 20px 0;
-        }
-    </style>
+    <!-- your existing styles -->
 </head>
 <body>
     <h1>Image Description Generator</h1>
     <div class="container">
-        <form method="POST" enctype="multipart/form-data">
-            <input type="file" name="image" accept="image/*">
-            <input type="text" name="description_text" placeholder="What's in this image?" value="{{ description_text }}" style="border: 2px solid #007bff; padding: 10px; margin: 10px 0; border-radius: 5px; width: 100%;">
-            <input type="submit" value="Generate Description">
+        <!-- This form is now just for resetting the session -->
+        <form method="POST" action="/reset">
+            <input type="submit" value="Reset Session">
         </form>
-        <p>{{ description }}</p>
-        <img class="output-image" src="{{ url_for('display_image', filename='working_image.jpg') }}" alt="Selected Image">
+        
+        <form method="POST" action="/generate" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*">
+            <input type="text" name="description_text" placeholder="What's in this image?">
+            <input type="submit" value="Generate/Ask">
+        </form>
+
+        <!-- Display the dialog history -->
+        {% for entry in history %}
+            <p><strong>{{ entry.role }}:</strong> {{ entry.content }}</p>
+        {% endfor %}
+        <p><strong>Latest description:</strong> {{ description }}</p>
+        <!-- Show image if loaded, adjust based on your application's needs -->
+        {% if history %}
+            <img class="output-image" src="{{ url_for('display_image', filename='working_image.jpg') }}" alt="Selected Image">
+        {% endif %}
     </div>
 </body>
 </html>
