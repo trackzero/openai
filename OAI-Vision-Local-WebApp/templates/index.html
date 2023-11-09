@@ -28,9 +28,33 @@
                 <input class="form-control" type="file" id="image" name="image" accept="image/*">
             </div>
             <div class="mb-3">
-                <label for="description_text" class="form-label">Describe or ask about the image:</label>
-                <input type="text" class="form-control" id="description_text" name="description_text" placeholder="What's in this image?" required>
-            </div>
+    <label for="description_text" class="form-label">Describe or ask about the image:</label>
+    <input type="text" class="form-control" id="description_text" name="description_text" placeholder="What's in this image?" required onfocus="setDefault(this)" oninput="updateDefaultValue(this)">
+</div>
+
+<script>
+    function setDefault(input) {
+        // Set the default value to the placeholder text only if the user hasn't interacted with the input
+        if (!input.getAttribute("data-touched")) {
+            input.value = input.getAttribute("placeholder") || "";
+        }
+    }
+
+    function updateDefaultValue(input) {
+        // Mark the input as touched when the user starts typing
+        input.setAttribute("data-touched", true);
+
+        // Check if the user has entered a custom value
+        if (input.value !== "") {
+            input.setAttribute("data-default", input.value);
+        } else {
+            // If the user clears the input, set the default value as the placeholder
+            input.value = input.getAttribute("data-default") || "";
+        }
+    }
+</script>
+
+            
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
         {% if image_uploaded %}
@@ -47,5 +71,6 @@
             {% endfor %}
         </div>
     </div>
+
 </body>
 </html>
