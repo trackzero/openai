@@ -64,11 +64,21 @@
         {% endif %}
         <div id="historyArea" class="mt-2">
             <!-- Display the dialog history -->
-            {% for entry in history %}
+{% for entry in history %}
+    {% if entry.role == "user" %}
+        {% for content in entry.content %}
+            {% if content.type == "text" %}
                 <div class="border p-2 my-1">
-                    <strong>{{ entry.role.capitalize() }}:</strong> {{ entry.content }}
+                    <strong>{{ entry.role.capitalize() }}:</strong> {{ content.text }}
                 </div>
-            {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <div class="border p-2 my-1">
+            <strong>{{ entry.role.capitalize() }}:</strong> {{ entry.content }}
+        </div>
+    {% endif %}
+{% endfor %}
         </div>
     </div>
 
