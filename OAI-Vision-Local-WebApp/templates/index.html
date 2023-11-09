@@ -1,32 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Description Generator</title>
-    <!-- your existing styles -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            padding-top: 20px;
+        }
+        .question-area {
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
-    <h1>Image Description Generator</h1>
     <div class="container">
-        <!-- This form is now just for resetting the session -->
-        <form method="POST" action="/reset">
-            <input type="submit" value="Reset Session">
-        </form>
-        
-        <form method="POST" action="/generate" enctype="multipart/form-data">
-            <input type="file" name="image" accept="image/*">
-            <input type="text" name="description_text" placeholder="What's in this image?">
-            <input type="submit" value="Generate/Ask">
-        </form>
+        <h1 class="text-center py-4">Image Description Generator</h1>
+        <div class="mb-3">
+            <form method="POST" action="/reset">
+                <button type="submit" class="btn btn-danger">Reset Session</button>
+            </form>
+        </div>
+        <div>
+            <form id="uploadForm" method="POST" action="/generate" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="image" class="form-label">Select image:</label>
+                    <input class="form-control" type="file" id="image" name="image" accept="image/*">
+                </div>
+                <div class="question-area">
+                    <label for="description_text" class="form-label">Ask a question:</label>
+                    <input type="text" class="form-control" id="description_text" name="description_text" placeholder="What's in this image?">
+                </div>
+                <button type="submit" class="btn btn-primary">Generate/Ask</button>
+            </form>
+        </div>
 
-        <!-- Display the dialog history -->
-        {% for entry in history %}
-            <p><strong>{{ entry.role }}:</strong> {{ entry.content }}</p>
-        {% endfor %}
-        <p><strong>Latest description:</strong> {{ description }}</p>
-        <!-- Show image if loaded, adjust based on your application's needs -->
-        {% if history %}
-            <img class="output-image" src="{{ url_for('display_image', filename='working_image.jpg') }}" alt="Selected Image">
-        {% endif %}
+        <div id="historyArea">
+            <!-- Display the dialog history -->
+            {% for entry in history %}
+                <div class="alert alert-secondary" role="alert">
+                    <strong>{{ entry.role }}:</strong> {{ entry.content }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="imageArea" class="mt-4">
+            <!-- Placeholder for image -->
+        </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            const image = document.getElementById('image');
+            // Check if file is selected
+            if (image.files.length > 0) {
+                // Display the uploaded image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageArea = document.getElementById('imageArea');
+                    imageArea.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" alt="Uploaded Image">';
+                }
+                reader.readAsDataURL(image.files[0]);
+            }
+        });
+    </script>
 </body>
 </html>
