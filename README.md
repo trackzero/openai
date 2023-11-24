@@ -62,3 +62,7 @@ This sample uses the gpt-4-image-preview model to generate a text description of
 
 ### OAI-Vision-Local-WebApp
 Added a Flask wrapper for the OAI Vision preview.  Install dependencies, run `app.py`. I did not create a dockerfile for this one.
+
+
+### OAI-Image-Tools
+Combined the two flask apps for OAI Image Generation and Vision preview so they can be run in a single container.
