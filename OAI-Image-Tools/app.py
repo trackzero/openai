@@ -12,7 +12,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Model name
-model = "gpt-4-vision-preview"
+model = "gpt-4o"
 
 # This session key stores the dialog history
 SESSION_KEY_DIALOG_HISTORY = 'dialog_history'
@@ -27,7 +27,7 @@ def reset_dialog_history():
     session[SESSION_KEY_DIALOG_HISTORY] = []
 
 def generate_images(prompt, size, style, quality):
-    model = "dall-e-3"  # Adjust the model name if needed
+    model = "dall-e-3"  # local override
     response = client.images.generate(
         model=model,
         prompt=prompt,
