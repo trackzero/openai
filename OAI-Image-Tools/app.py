@@ -1,13 +1,14 @@
-from flask import Flask, render_template, request, send_from_directory, session, send_from_directory, url_for
+from flask import Flask, render_template, request, send_from_directory, session, url_for
 import os
 import base64
 from openai import OpenAI
 
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from openai import Audio
+
 app = Flask(__name__)
 
-# Initialize the OpenAI client and set the API key
-client = OpenAI()
-client.api_key = os.getenv("OPENAI_API_KEY")
+# Set the OpenAI API key
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
@@ -30,13 +31,11 @@ def reset_dialog_history():
     session[SESSION_KEY_IMAGE_HISTORY] = []
 
 def generate_images(prompt, size, style, quality):
-    response = client.images.generate(
-        model=imgmodel,  # Use the globally defined model variable
-        prompt=prompt,
-        size=size,
-        style=style,
-        quality=quality,
-    )
+    response = client.images.generate(model=imgmodel,
+    prompt=prompt,
+    size=size,
+    style=style,
+    quality=quality)
 
     image_url = response.data[0].url
     return image_url
@@ -86,18 +85,16 @@ def generate_description():
     session.setdefault(SESSION_KEY_IMAGE_HISTORY, []).append(base64_image)
 
     messages = session.get(SESSION_KEY_DIALOG_HISTORY, [])
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        max_tokens=300,
-    )
-    
+    response = client.chat.completions.create(model=model,
+    messages=messages,
+    max_tokens=300)
+
     # after the response, add bot's response to history
     session[SESSION_KEY_DIALOG_HISTORY].append({
         "role": "assistant",
         "content": response.choices[0].message.content
     })
-    
+
     description = response.choices[0].message.content
     cache_buster = os.path.getmtime(image_path) if os.path.exists(image_path) else 0
     return render_template("vision_index.html", description=description, history=messages, image_uploaded=os.path.exists(image_path), cache_buster=cache_buster)
@@ -128,6 +125,25 @@ def dalle_index():
         style = session.get("style", "vivid")
         quality = session.get("quality", "standard")
         return render_template("dalle_index.html", prompt=prompt, history=session.get(SESSION_KEY_IMAGE_HISTORY, []))
+
+@app.route("/audio", methods=["GET", "POST"])
+def audio_to_text():
+    if request.method == "POST":
+        audio_file = request.files.get("audio")
+        if audio_file:
+            # Save the uploaded audio file
+            audio_path = os.path.join(app.config['UPLOAD_FOLDER'], 'uploaded_audio.wav')
+            audio_file.save(audio_path)
+
+            # Use OpenAI API to transcribe the audio
+            with open(audio_path, "rb") as audio:
+                response = client.audio.transcriptions.create (model="whisper-1",
+                file=audio)
+
+            transcript = response.text
+            return render_template("audio_index.html", transcript=transcript)
+
+    return render_template("audio_index.html")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5050, debug=True)
