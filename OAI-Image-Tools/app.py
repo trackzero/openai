@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_from_directory, session, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, session, send_from_directory, url_for
 import os
 import base64
 from openai import OpenAI
@@ -13,9 +13,11 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Model name
 model = "gpt-4o"
+imgmodel = "dall-e-3"
 
 # This session key stores the dialog history
 SESSION_KEY_DIALOG_HISTORY = 'dialog_history'
+SESSION_KEY_IMAGE_HISTORY = 'image_history'
 
 image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'working_image.jpg')
 
@@ -25,11 +27,11 @@ def encode_image(image_path):
 
 def reset_dialog_history():
     session[SESSION_KEY_DIALOG_HISTORY] = []
+    session[SESSION_KEY_IMAGE_HISTORY] = []
 
 def generate_images(prompt, size, style, quality):
-    model = "dall-e-3"  # local override
     response = client.images.generate(
-        model=model,
+        model=imgmodel,  # Use the globally defined model variable
         prompt=prompt,
         size=size,
         style=style,
@@ -67,7 +69,7 @@ def generate_description():
 
     base64_image = encode_image(image_path)
 
-        # Store only the filename in the session, not the entire image content
+    # Store only the filename in the session, not the entire image content
     session[SESSION_KEY_DIALOG_HISTORY].append({
         "role": "system",
         "content": "User uploaded a new image." if image and image.filename != "" else "User continued with the existing image."
@@ -80,6 +82,8 @@ def generate_description():
         ],
     })
 
+    # Store the image in the image history
+    session.setdefault(SESSION_KEY_IMAGE_HISTORY, []).append(base64_image)
 
     messages = session.get(SESSION_KEY_DIALOG_HISTORY, [])
     response = client.chat.completions.create(
@@ -95,7 +99,8 @@ def generate_description():
     })
     
     description = response.choices[0].message.content
-    return render_template("vision_index.html", description=description, history=messages, image_uploaded=os.path.exists(image_path))
+    cache_buster = os.path.getmtime(image_path) if os.path.exists(image_path) else 0
+    return render_template("vision_index.html", description=description, history=messages, image_uploaded=os.path.exists(image_path), cache_buster=cache_buster)
 
 @app.route("/reset", methods=["POST"])
 def reset_session():
@@ -110,18 +115,19 @@ def dalle_index():
         style = request.form.get("style")
         quality = request.form.get("quality")
         image_url = generate_images(prompt, size, style, quality)
+        session.setdefault(SESSION_KEY_IMAGE_HISTORY, []).append(image_url)
         session["prompt"] = prompt
         session["size"] = size
         session["style"] = style
         session["quality"] = quality
 
-        return render_template("dalle_index.html", prompt=prompt, size=size, style=style, quality=quality, image_url=image_url)
+        return render_template("dalle_index.html", prompt=prompt, size=size, style=style, quality=quality, image_url=image_url, history=session.get(SESSION_KEY_IMAGE_HISTORY, []))
     else:
         prompt = session.get("prompt", "")
         size = session.get("size", "1024x1024")
         style = session.get("style", "vivid")
         quality = session.get("quality", "standard")
-        return render_template("dalle_index.html", prompt=prompt)
+        return render_template("dalle_index.html", prompt=prompt, history=session.get(SESSION_KEY_IMAGE_HISTORY, []))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5050, debug=True)
