@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, send_from_directory, session, url_for
+from flask import Flask, render_template, request, send_from_directory, session, url_for, jsonify
 import os
 import base64
+import mimetypes
 from openai import OpenAI
+from pydub import AudioSegment
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from openai import Audio
@@ -39,6 +41,37 @@ def generate_images(prompt, size, style, quality):
 
     image_url = response.data[0].url
     return image_url
+
+# Helper function to split audio files
+def split_audio_file(file_path, max_size=25 * 1024 * 1024):
+    # Determine the audio format based on the file extension
+    mime_type, _ = mimetypes.guess_type(file_path)
+    audio_format = mime_type.split('/')[1] if mime_type else 'wav'
+
+    # Load the audio file with the correct format
+    audio = AudioSegment.from_file(file_path, format=audio_format)
+    audio_size = os.path.getsize(file_path)
+    
+    # If the audio file is within the size limit, return the original file
+    if audio_size <= max_size:
+        return [file_path]
+    
+    # Calculate number of chunks needed
+    num_chunks = (audio_size // max_size) + 1
+    chunk_duration_ms = len(audio) / num_chunks  # Duration in milliseconds
+    
+    # Split the audio into chunks and export them
+    audio_chunks = []
+    for i in range(num_chunks):
+        start_time = i * chunk_duration_ms
+        end_time = start_time + chunk_duration_ms
+        chunk = audio[start_time:end_time]
+        chunk_path = f"{file_path}_chunk_{i}.mp3"  # Export as mp3 for compatibility
+        chunk.export(chunk_path, format="mp3")
+        audio_chunks.append(chunk_path)
+    
+    return audio_chunks
+
 
 @app.route("/")
 def index():
@@ -131,18 +164,37 @@ def audio_to_text():
     if request.method == "POST":
         audio_file = request.files.get("audio")
         if audio_file:
-            # Save the uploaded audio file
-            audio_path = os.path.join(app.config['UPLOAD_FOLDER'], 'uploaded_audio.wav')
+            # Get the original filename and extension
+            filename = audio_file.filename
+            extension = os.path.splitext(filename)[1].lower()
+            
+            # Ensure the uploaded file has one of the supported extensions
+            supported_extensions = ['.mp3', '.mp4', '.mpeg', '.mpga', '.m4a', '.wav', '.webm']
+            if extension not in supported_extensions:
+                return render_template("audio_index.html", error="Unsupported audio format.")
+            
+            # Save the uploaded audio file with its original extension
+            audio_path = os.path.join(app.config['UPLOAD_FOLDER'], f'uploaded_audio{extension}')
             audio_file.save(audio_path)
-
-            # Use OpenAI API to transcribe the audio
-            with open(audio_path, "rb") as audio:
-                response = client.audio.transcriptions.create (model="whisper-1",
-                file=audio)
-
-            transcript = response.text
-            return render_template("audio_index.html", transcript=transcript)
-
+    
+            # Use the split_audio_file function to get the list of audio files (chunks)
+            audio_files = split_audio_file(audio_path)
+    
+            transcripts = []
+    
+            for chunk_path in audio_files:
+                with open(chunk_path, "rb") as audio_chunk:
+                    response = client.audio.transcriptions.create(model="whisper-1", file=audio_chunk)
+                    transcripts.append(response.text)
+                # Clean up chunk files except the original
+                if chunk_path != audio_path:
+                    os.remove(chunk_path)
+    
+            # Concatenate all transcripts
+            full_transcript = ' '.join(transcripts)
+    
+            return render_template("audio_index.html", transcript=full_transcript)
+    
     return render_template("audio_index.html")
 
 if __name__ == "__main__":

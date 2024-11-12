@@ -66,3 +66,5 @@ Added a Flask wrapper for the OAI Vision preview.  Install dependencies, run `ap
 
 ### OAI-Image-Tools
 Combined the two flask apps for OAI Image Generation and Vision preview so they can be run in a single container.
+
+Then in November 2024 I added a third route to do audio to text conversion but I didn't bother changing the directory name.  It's fine, I'm sure I'll get to it soon.
