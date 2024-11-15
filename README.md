@@ -45,7 +45,7 @@ Here's a screenshot:
 
 ### Image Analysis (middle button)
 
-This sample uses the `gpt-4o` model to generate a text description of an image passed in through the command line.
+This sample uses the `gpt-4o` model to generate a text description of an image submitted via the file dialog. You can continue asking questions about the same image until you reset the session with the intuitively labelled "Reset Session" button.
 
 
 ### Audio transcription (bottom button)
