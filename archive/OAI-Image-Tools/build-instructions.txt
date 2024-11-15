@@ -1,0 +1,6 @@
+docker build -t oai-web-tools .
+docker run -d -p 5050:5050 --name oai-web-container --env-file .env -v /volume1/docker/oai-web/uploads:/app/uploads my-flask-app
+
+# On syno, stop the container, set to auto restart, use web station http 5050, delete port 5050 at the lower part of dialog.
+# Then in web station, configure port based, https:5050
+# in control panel, security, advanced...ssl certs, change it to the external cert.

@@ -1,3 +1,3 @@
-# removed a blanket dependency for flask
 Flask==3.0.0
-openai==1.3.3
+openai==1.54.3
+pydub
