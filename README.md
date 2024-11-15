@@ -11,7 +11,7 @@ You'll want to start with `pip install openai`; if you know how to work with vir
 
 I've consolidated all the weird experimenting I was doing into a single three-route flask-based `app.py` that I host on a Docker container.  Everything now runs off of `app.py`.
 
-To try it locally (sans docker) clone the repo, install the dependencies (refer to requireements.txt), create an .env file, probably, with your OPENAI_API_KEY and your FLASK_SECRET_KEY, and in the root of the repo, run `flask run`, and if I didn't forget something important in these instructions, it fires up an instance on localhost:5050.
+To try it locally (sans docker) clone the repo, install the dependencies (refer to requireements.txt), create an .env file, probably, with your OPENAI_API_KEY and your FLASK_SECRET_KEY, and in the root of the repo, run `flask run`, and if I didn't forget something important in these instructions, it fires up an instance on localhost:5000.
 
 If you want to run it on docker, there are some notes in the `build-instructions.txt` file, but they're specific to my environment. You'll need to figure out your own volume mapping.
 
@@ -24,6 +24,8 @@ I was actually surprised when docker didn't build locally. I muddled through hal
 I'm gonna be so screwed when I upgrade my dev desktop. You may think this is pointless rambling, but these are breadcrumbs I'm leaving for future Track.
 
 Where were we....Oh yes! The Flask app will currently persist your prompt and image settings between submissions for the session.
+
+And, for whatever reason, I have the docker container exposing port 5050 when the flask app uses 5000.
 
 ## So...you gonna talk about the app, or...
 
