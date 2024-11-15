@@ -45,11 +45,20 @@ def generate_images(prompt, size, style, quality):
 # Helper function to split audio files
 def split_audio_file(file_path, max_size=25 * 1024 * 1024):
     # Determine the audio format based on the file extension
-    mime_type, _ = mimetypes.guess_type(file_path)
-    audio_format = mime_type.split('/')[1] if mime_type else 'wav'
+    extension = os.path.splitext(file_path)[1].lower()
+    audio_format = extension.lstrip('.')
+    if audio_format == 'mpga':
+        audio_format = 'mp3'  # pydub uses 'mp3' for 'mpga'
+    elif audio_format == 'wav':
+        audio_format = 'wav'  # Ensure correct format for wav files
 
     # Load the audio file with the correct format
-    audio = AudioSegment.from_file(file_path, format=audio_format)
+    try:
+        audio = AudioSegment.from_file(file_path, format=audio_format)
+    except Exception as e:
+        app.logger.error(f"Error loading audio file: {e}")
+        return []  # Return an empty list or handle the error appropriately
+
     audio_size = os.path.getsize(file_path)
     
     # If the audio file is within the size limit, return the original file
@@ -62,16 +71,15 @@ def split_audio_file(file_path, max_size=25 * 1024 * 1024):
     
     # Split the audio into chunks and export them
     audio_chunks = []
-    for i in range(num_chunks):
+    for i in range(int(num_chunks)):
         start_time = i * chunk_duration_ms
         end_time = start_time + chunk_duration_ms
         chunk = audio[start_time:end_time]
-        chunk_path = f"{file_path}_chunk_{i}.mp3"  # Export as mp3 for compatibility
-        chunk.export(chunk_path, format="mp3")
+        chunk_path = f"{file_path}_chunk_{i}.{audio_format}"
+        chunk.export(chunk_path, format=audio_format)
         audio_chunks.append(chunk_path)
     
     return audio_chunks
-
 
 @app.route("/")
 def index():
@@ -179,6 +187,9 @@ def audio_to_text():
     
             # Use the split_audio_file function to get the list of audio files (chunks)
             audio_files = split_audio_file(audio_path)
+    
+            if not audio_files:
+                return render_template("audio_index.html", error="There was an error processing your audio file.")
     
             transcripts = []
     
