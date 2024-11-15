@@ -11,7 +11,7 @@ You'll want to start with `pip install openai`; if you know how to work with vir
 
 I've consolidated all the weird experimenting I was doing into a single three-route flask-based `app.py` that I host on a Docker container.  Everything now runs off of `app.py`.
 
-To try it locally (sans docker) clone the repo, install the dependencies (refer to requireements.txt), create an .env file, probably, with your OPENAI_API_KEY and your FLASK_SECRET_KEY, and in the root of the repo, run `flask run`, and if I didn't forget something important in these instructions, it fires up an instance on localhost:5000.
+To try it locally (sans docker) clone the repo, install the dependencies (refer to requirements.txt), create an .env file, probably, with your OPENAI_API_KEY and your FLASK_SECRET_KEY, and in the root of the repo, run `flask run`, and if I didn't forget something important in these instructions, it fires up an instance on localhost:5000.
 
 If you want to run it on docker, there are some notes in the `build-instructions.txt` file, but they're specific to my environment. You'll need to figure out your own volume mapping.
 
